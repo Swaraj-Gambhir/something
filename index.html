@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Home Page</title>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <script src="config.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const recaptchaDiv = document.querySelector(".g-recaptcha");
+      if (recaptchaDiv) {
+        recaptchaDiv.setAttribute("data-sitekey", window.env.SITE_KEY);
+      }
+    });
+  </script>
+  <script>
+    function checkCountry() {
+        fetch('https://get.geojs.io/v1/ip/country.json')
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();  // Parse the JSON response
+          })
+          .then(data => {
+            // Log the entire response to the console
+            console.log("Fetched data:", data);
+            if (data.country === 'IN') {
+                
+                document.getElementById('secretButton-in').style.display = 'block';
+              } 
+              if (data.country === 'SG') {
+                
+                document.getElementById('secretButton-sg').style.display = 'block';
+              } 
+              if (data.country === 'JP') {
+                
+                document.getElementById('secretButton-jp').style.display = 'block';
+              } 
+            
+          })
+          .catch(error => {
+            console.error("Error fetching geo information:", error);
+            // Optionally, handle the error here.
+          });
+      }
+    // Run the check when the page loads
+    window.onload = checkCountry;
+  </script>
+  <style>
+    /* (Optional) Simple styling */
+    body { font-family: Arial, sans-serif; margin: 2rem; }
+    button { padding: 0.5rem 1rem; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <h1>Home Page</h1>
+  <p>This page checks your location. If you are in specific country, you will see a button to enter the secret page.</p>
+  <!-- This button is hidden by default and will be shown only if the visitor is from India -->
+  <button id="secretButton-in" style="display: none;" onclick="window.location.href='secret-in.html'">
+    India 
+  </button>
+  <button id="secretButton-sg" style="display: none;" onclick="window.location.href='secret-sg.html'">
+    Singapore
+  </button>
+  <button id="secretButton-jp" style="display: none;" onclick="window.location.href='secret-jp.html'">
+   Japan
+  </button>
+  <button id="redirectButton">Go to Info Page</button>
+
+    <!-- reCAPTCHA widget -->
+    <div class="g-recaptcha"></div>
+
+    <script>
+        // Function to handle the button click
+        document.getElementById('redirectButton').addEventListener('click', async function () {
+            const recaptchaResponse = grecaptcha.getResponse(); // Get reCAPTCHA response
+
+            if (!recaptchaResponse) {
+                alert('Please complete the reCAPTCHA.');
+                return;
+            }
+
+            // Send the reCAPTCHA response to your backend for verification
+            const response = await fetch('/verify-recaptcha', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ recaptchaResponse }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                // If reCAPTCHA is verified, redirect to info.html
+                window.location.href = 'info.html';
+            } else {
+                alert('reCAPTCHA verification failed. Please try again.');
+            }
+        });
+    </script>
+    <button id="noninfo"  onclick="window.location.href='non-info.html'">
+        Non Info
+       </button>
+</body>
+</html>
